@@ -1,0 +1,201 @@
+GET /_cluster/health
+
+GET /_cat/nodes?v
+
+GET /_cat/indices?v
+
+GET /_cat/indices?v&expand_wildcards=all
+
+GET /_cat/shards?v
+
+
+DELETE /products
+
+PUT /products
+{
+  "settings": {
+    "number_of_shards": 2, 
+    "number_of_replicas": 2
+  }
+}
+
+POST /products/_doc 
+{
+  "name": "Atache",
+  "price" : 64, 
+  "in_stock" : 11
+}
+
+PUT /products/_doc/100 
+{
+  "name": "Daeng GI",
+  "price" : 40, 
+  "in_stock" : 5
+}
+
+POST /products/_update/100 
+{
+  "doc" : {
+    "in_stock" : 2,
+    "tags" : ["tag1", "tag2", "tag3"]
+  }
+}
+
+POST /products/_update/100 
+{
+  "script": {
+    "source": "ctx._source.in_stock++"
+  }
+}
+
+POST /products/_update/100 
+{
+  "script": {
+    "source": "ctx._source.in_stock = 10"
+  }
+}
+
+POST /products/_update/100 
+{
+  "script": {
+    "source": "ctx._source.in_stock -= params.quantity",
+    "params": {"quantity" : 4}
+  }
+}
+
+POST /products/_update/100 
+{
+  "script": {
+    "source": """
+      if (ctx._source.in_stock == 0) {
+        ctx.op = 'noop';
+      }
+      ctx._source.in_stock--;
+    """
+  }
+}
+
+POST /products/_update/100 
+{
+  "script": {
+    "source": """
+      if (ctx._source.in_stock <= 1) {
+        ctx.op = 'delete';
+      }
+      ctx._source.in_stock--;
+    """
+  }
+}
+
+POST /products/_update/102
+{
+  "script": {
+    "source": "ctx._source.in_stock++"
+  },
+  "upsert": {
+     "name": "Hadat",
+     "price" : 64, 
+     "in_stock" : 11
+  }
+}
+
+PUT /products/_doc/103 
+{
+  "name": "Hadat",
+  "price" : 40, 
+  "in_stock" : 5
+}
+
+DELETE /products/_doc/103 
+
+
+POST /products/_update/102?if_primary_term=2&if_seq_no=36
+{
+  "script": {
+    "source": "ctx._source.in_stock++"
+  }
+}
+
+POST /products/_update_by_query
+{
+  "conflicts": "proceed", 
+  "script": {
+    "source": "ctx._source.in_stock++"
+  },
+  "query": {
+    "match_all": {}
+  }
+}
+
+POST /products/_delete_by_query
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+
+GET /products/_doc/102
+
+
+GET /_cat/shards/products?v
+
+POST _bulk
+{ "index" : { "_index" : "test", "_id" : "1" } }
+{ "field1" : "value1", "price" : 30.01}
+{ "delete" : { "_index" : "test", "_id" : "2" } }
+{ "create" : { "_index" : "test", "_id" : "3" } }
+{ "field1" : "value3" }
+{ "update" : {"_id" : "1", "_index" : "test"} }
+{ "script" : {"source": "ctx._source.price++"}}
+
+POST test/_bulk
+{ "index" : { "_id" : "1" } }
+{ "field1" : "value1", "price" : 30.01}
+{ "delete" : {"_id" : "2" } }
+{ "create" : {"_id" : "3" } }
+{ "field1" : "value3" }
+{ "update" : {"_id" : "1", "_index" : "test"} }
+{ "script" : {"source": "ctx._source.price++"}}
+
+GET /products/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+GET /_cat/shards?v
+
+
+POST /_analyze
+{
+  "text": "Analyze ... this ! interestin! test: 1223",
+  "analyzer": "standard"
+}
+
+POST /_analyze
+{
+  "text": "Analyze ... this ! interestin! test: 1223",
+  "char_filter": [],
+  "tokenizer": "standard",
+  "filter": ["lowercase"]
+}
+
+POST /_analyze
+{
+  "text": "Analyze ... this ! interestin! test: 1223",
+  "analyzer": "keyword"
+}
+
+POST /_analyze
+{
+  "text": "Analyze ... this ! interestin! test: 1223",
+  "analyzer": "keyword"
+}
+
+POST /_analyze
+{
+  "text": ["Array element 1", "Array element 2"],
+  "analyzer": "standard"
+}
